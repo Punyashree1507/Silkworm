@@ -1,7 +1,6 @@
 const twilio = require('twilio');
 
 module.exports = async function handler(req, res) {
-  // CORS configuration handling
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -22,7 +21,7 @@ module.exports = async function handler(req, res) {
   const twilioNum = process.env.TWILIO_PHONE_NUMBER;
 
   if (!accountSid || !authToken || !twilioNum) {
-    return res.status(500).json({ success: false, error: 'Missing Twilio server vault credentials' });
+    return res.status(500).json({ success: false, error: 'Missing environment variables in server vault' });
   }
 
   const client = twilio(accountSid, authToken);
