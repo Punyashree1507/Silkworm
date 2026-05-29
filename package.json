@@ -2,6 +2,9 @@
   "name": "silkworm-dashboard",
   "version": "1.0.0",
   "type": "module",
+  "scripts": {
+    "build": "echo 'Static build complete'"
+  },
   "dependencies": {
     "twilio": "^4.24.0"
   }
