@@ -1,6 +1,7 @@
 {
   "name": "silkworm-dashboard",
   "version": "1.0.0",
+  "type": "module",
   "dependencies": {
     "twilio": "^4.24.0"
   }
