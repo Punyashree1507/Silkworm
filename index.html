@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Silkworm AI — Secure Portal & Management Suite</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
   :root {
     --bg: #070d0a; --surface: #0e1a13; --surface2: #142018; --border: #1e3327;
@@ -303,10 +304,10 @@
     </div>
 
     <div id="view-reports" class="view-section">
-      <div class="panel">
+      <div class="panel" id="report-panel">
         <div class="panel-header">
           <div class="panel-title" data-i18n="nav_reports">📋 Automated Reports</div>
-          <button class="btn btn-primary" onclick="downloadReportCSV()">📥 Download CSV Export</button>
+          <button class="btn btn-primary" id="download-btn" onclick="downloadReportPDF()">📄 Download PDF Export</button>
         </div>
         
         <p style="color:var(--text2); font-size:14px; margin-bottom:20px;">Weekly batch survival and yield metrics generated from hardware logs.</p>
@@ -424,28 +425,32 @@ function switchTab(clickedElement, targetViewId) {
   document.getElementById(targetViewId).classList.add('active');
 }
 
-// ── 3. CSV DOWNLOAD FUNCTION ──
-function downloadReportCSV() {
-  // Creating a simulated CSV string format
-  const csvContent = "data:text/csv;charset=utf-8," 
-    + "Log Date,Avg Temp (C),Avg Humidity (%),Est. Mortality Rate,Batch Status\n"
-    + "May 28 2026,26.2,77.5,0.4%,Optimal\n"
-    + "May 27 2026,26.8,78.1,0.5%,Optimal\n"
-    + "May 26 2026,27.5,82.0,1.2%,Warning\n"
-    + "May 25 2026,26.0,76.5,0.2%,Optimal";
-    
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", "silkworm_batch_report.csv");
+// ── 3. PDF DOWNLOAD FUNCTION ──
+function downloadReportPDF() {
+  showToast('⏳', 'Generating PDF', 'Compiling report data... please wait.');
   
-  // Click the hidden link to force download
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  // Select the panel area we want to convert to PDF
+  const element = document.getElementById('report-panel');
+  const dlButton = document.getElementById('download-btn');
   
-  // Show a notification
-  showToast('📥', 'Download Started', 'Your CSV report is downloading to your device.');
+  // Temporarily hide the button so it doesn't show up inside the actual PDF document
+  dlButton.style.display = 'none';
+
+  // Configure the PDF settings
+  const opt = {
+    margin:       0.3,
+    filename:     'Silkworm_Batch_Report.pdf',
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, backgroundColor: '#0e1a13' }, // Keep the dark background color in the PDF
+    jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
+  };
+
+  // Generate and save
+  html2pdf().set(opt).from(element).save().then(() => {
+    // Restore the download button once finished
+    dlButton.style.display = 'inline-flex'; 
+    showToast('📄', 'Download Complete', 'Your PDF report has been saved to your device.');
+  });
 }
 
 function showToast(icon, title, msg) {
