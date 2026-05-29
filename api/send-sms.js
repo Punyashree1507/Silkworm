@@ -1,7 +1,12 @@
-import twilio from 'twilio';
+const twilio = require('twilio');
 
-export default async function handler(req, res) {
-  // Smoothly clear CORS preflight blocks
+module.exports = async function handler(req, res) {
+  // CORS configuration handling
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -17,7 +22,7 @@ export default async function handler(req, res) {
   const twilioNum = process.env.TWILIO_PHONE_NUMBER;
 
   if (!accountSid || !authToken || !twilioNum) {
-    return res.status(500).json({ success: false, error: 'Missing credentials in server vault' });
+    return res.status(500).json({ success: false, error: 'Missing Twilio server vault credentials' });
   }
 
   const client = twilio(accountSid, authToken);
@@ -37,4 +42,4 @@ export default async function handler(req, res) {
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
-}
+};
