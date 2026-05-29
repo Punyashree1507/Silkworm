@@ -276,7 +276,26 @@
     <div id="view-alerts" class="view-section">
       <div class="panel">
         <div class="panel-header"><div class="panel-title" data-i18n="nav_alerts">🔔 System Alerts History</div></div>
+        <div class="panel" style="margin-top:20px; padding:20px; background:var(--surface); border:1px solid var(--border); border-radius:8px;">
+        <div class="panel-header" style="margin-bottom:15px;">
+          <div class="panel-title">📱 SMS Alert Gateway (Twilio)</div>
+        </div>
         
+        <div style="display:flex; flex-direction:column; gap:12px; max-width:400px; text-align:left;">
+          <label style="font-size:12px; color:var(--text2);">Enter Mobile Number (With Country Code):</label>
+          <input type="text" id="sms-phone" placeholder="+919876543210" style="padding:10px; background:#000; border:1px solid var(--border); border-radius:6px; color:#fff; font-family:monospace; width:100%; box-sizing:border-box;">
+          
+          <div style="display:flex; gap:10px; margin-top:5px;">
+            <button type="button" onclick="sendDemoSMS('SAFE')" style="flex:1; background:#2ecc71; color:#050e08; font-weight:700; padding:12px; border:none; border-radius:6px; cursor:pointer;">
+              🟢 Test "SAFE" SMS
+            </button>
+            <button type="button" onclick="sendDemoSMS('NOT SAFE')" style="flex:1; background:#e74c3c; color:#fff; font-weight:700; padding:12px; border:none; border-radius:6px; cursor:pointer;">
+              🔴 Test "NOT SAFE" SMS
+            </button>
+          </div>
+          <p id="sms-status" style="font-size:11px; color:var(--text3); margin-top:5px; font-family:monospace; min-height:15px;"></p>
+        </div>
+      </div>
         <div style="display:flex; flex-direction:column; gap:12px;">
            <div style="padding:16px; border-radius:10px; background:rgba(243,156,18,0.08); border:1px solid rgba(243,156,18,0.3); display:flex; gap:16px; align-items:flex-start;">
              <div style="font-size:24px;">⚠️</div>
@@ -589,6 +608,41 @@ function toggleLanguage() {
       }
     }
   });
+}
+</script>
+  <script>
+async function sendDemoSMS(statusType) {
+  const phoneNum = document.getElementById('sms-phone').value;
+  const statusLog = document.getElementById('sms-status');
+  
+  if (!phoneNum) {
+    statusLog.innerText = "Error: Please enter a phone number first!";
+    statusLog.style.color = "#e74c3c";
+    return;
+  }
+  
+  statusLog.innerText = `🔄 Triggering serverless API gateway for [${statusType}]...`;
+  statusLog.style.color = "var(--accent)";
+  
+  try {
+    const response = await fetch('/api/send-sms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phoneNumber: phoneNum, statusType: statusType })
+    });
+    
+    const data = await response.json();
+    if (data.success) {
+      statusLog.innerText = `✅ Dispatched! SMS status successfully routed via Twilio.`;
+      statusLog.style.color = "#2ecc71";
+    } else {
+      statusLog.innerText = `❌ Twilio Gateway Refused: ${data.error}`;
+      statusLog.style.color = "#e74c3c";
+    }
+  } catch (err) {
+    statusLog.innerText = `❌ Connection Error: Hidden backend API folder not found yet.`;
+    statusLog.style.color = "#e74c3c";
+  }
 }
 </script>
 </body>
