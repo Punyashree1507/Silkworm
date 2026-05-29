@@ -1,7 +1,7 @@
-const twilio = require('twilio');
+import twilio from 'twilio';
 
-module.exports = async (req, res) => {
-  // Handle CORS preflight requests smoothly
+export default async function handler(req, res) {
+  // Smoothly clear CORS preflight blocks
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -17,7 +17,7 @@ module.exports = async (req, res) => {
   const twilioNum = process.env.TWILIO_PHONE_NUMBER;
 
   if (!accountSid || !authToken || !twilioNum) {
-    return res.status(500).json({ success: false, error: 'Missing Twilio environment credentials in configuration vault' });
+    return res.status(500).json({ success: false, error: 'Missing credentials in server vault' });
   }
 
   const client = twilio(accountSid, authToken);
@@ -37,4 +37,4 @@ module.exports = async (req, res) => {
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
-};
+}
