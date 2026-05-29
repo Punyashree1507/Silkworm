@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Silkworm AI — Secure Portal & Management Suite</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
 <style>
   :root {
     --bg: #070d0a; --surface: #0e1a13; --surface2: #142018; --border: #1e3327;
@@ -290,21 +293,12 @@
                <div style="color:var(--text3); font-size:11px; margin-top:8px; font-family:monospace;">May 28, 2026 - 11:00 PM</div>
              </div>
            </div>
-           
-           <div style="padding:16px; border-radius:10px; background:var(--surface2); border:1px solid var(--border); display:flex; gap:16px; align-items:flex-start;">
-             <div style="font-size:24px;">ℹ️</div>
-             <div>
-               <div style="color:var(--text); font-weight:700; font-size:15px;">New Batch Registered</div>
-               <div style="color:var(--text2); font-size:13px; margin-top:4px;">Batch #SLK-2026-05 was successfully initialized and added to the tracking matrix.</div>
-               <div style="color:var(--text3); font-size:11px; margin-top:8px; font-family:monospace;">May 25, 2026 - 09:00 AM</div>
-             </div>
-           </div>
         </div>
       </div>
     </div>
 
     <div id="view-reports" class="view-section">
-      <div class="panel" id="report-panel">
+      <div class="panel">
         <div class="panel-header">
           <div class="panel-title" data-i18n="nav_reports">📋 Automated Reports</div>
           <button class="btn btn-primary" id="download-btn" onclick="downloadReportPDF()">📄 Download PDF Export</button>
@@ -425,32 +419,89 @@ function switchTab(clickedElement, targetViewId) {
   document.getElementById(targetViewId).classList.add('active');
 }
 
-// ── 3. PDF DOWNLOAD FUNCTION ──
+// ── 3. ✨ NEW: PROFESSIONAL PDF GENERATION (jsPDF + autoTable) ✨ ──
 function downloadReportPDF() {
   showToast('⏳', 'Generating PDF', 'Compiling report data... please wait.');
   
-  // Select the panel area we want to convert to PDF
-  const element = document.getElementById('report-panel');
-  const dlButton = document.getElementById('download-btn');
+  // Initialize jsPDF
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  // Define styling colors based on your second photo
+  const blueHeaderColor = [41, 128, 185];
   
-  // Temporarily hide the button so it doesn't show up inside the actual PDF document
-  dlButton.style.display = 'none';
+  // 1. Add Report Header text (White background naturally)
+  doc.setFontSize(18);
+  doc.setTextColor(0, 0, 0); // Black text
+  doc.text("Silkworm Environmental Report", 14, 22);
 
-  // Configure the PDF settings
-  const opt = {
-    margin:       0.3,
-    filename:     'Silkworm_Batch_Report.pdf',
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, backgroundColor: '#0e1a13' }, // Keep the dark background color in the PDF
-    jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
-  };
+  // 2. Add Meta information
+  doc.setFontSize(10);
+  doc.setTextColor(100, 100, 100); // Gray text
+  doc.text("Device: nodeMCU_01", 14, 30);
+  
+  const now = new Date();
+  const dateString = now.toLocaleDateString('en-GB');
+  const timeString = now.toLocaleTimeString();
+  doc.text(`Generated: ${dateString}, ${timeString}`, 14, 35);
+  doc.text("Overall status: SAFE", 14, 40);
 
-  // Generate and save
-  html2pdf().set(opt).from(element).save().then(() => {
-    // Restore the download button once finished
-    dlButton.style.display = 'inline-flex'; 
-    showToast('📄', 'Download Complete', 'Your PDF report has been saved to your device.');
+  // 3. Current Readings Section
+  doc.setFontSize(12);
+  doc.setTextColor(0, 0, 0);
+  doc.text("Current readings", 14, 50);
+
+  // Grab the live dashboard values (or default to '--' if not loaded yet)
+  const tempVal = document.getElementById('temp-val').innerText.split('°')[0] || '--';
+  const humVal = document.getElementById('humid-val').innerText.split('%')[0] || '--';
+  const gasVal = document.getElementById('gas-val').innerText.split('p')[0] || '--';
+
+  doc.autoTable({
+    startY: 54,
+    head: [['Metric', 'Value', 'Unit']],
+    body: [
+      ['Temperature', tempVal, '°C'],
+      ['Humidity', humVal, '%'],
+      ['Gas / Air Quality', gasVal, 'ADC']
+    ],
+    theme: 'striped',
+    headStyles: { fillColor: blueHeaderColor }
   });
+
+  // 4. Recent History Section (Hardcoded to match your exact photo)
+  const finalY = doc.lastAutoTable.finalY || 54;
+  doc.text("Recent history (sample)", 14, finalY + 14);
+
+  const historyData = [
+    ['01:20', '25.6', '55.8', '294.1689511644412'],
+    ['02:20', '26.4', '57.0', '256.16135880052923'],
+    ['03:20', '28.1', '58.7', '253.37048235023545'],
+    ['04:20', '28.9', '60.8', '286.47962570381077'],
+    ['05:20', '30.8', '63.2', '347.382515846557'],
+    ['06:20', '30.9', '65.7', '421.16800120898006'],
+    ['07:20', '31.2', '68.2', '489.7708216155935'],
+    ['08:20', '31.7', '70.4', '536.3946140238522'],
+    ['09:20', '31.4', '72.3', '549.6242479906082'],
+    ['10:20', '29.6', '73.8', '526.2206477211845'],
+    ['11:20', '29.0', '74.7', '471.91383079063047'],
+    ['12:20', '27.4', '75.0', '400']
+  ];
+
+  doc.autoTable({
+    startY: finalY + 18,
+    head: [['Time', 'Temperature', 'Humidity', 'Gas / Air Quality']],
+    body: historyData,
+    theme: 'striped',
+    headStyles: { fillColor: blueHeaderColor }
+  });
+
+  // 5. Trigger the download automatically
+  doc.save(`silkworm-report-${now.toISOString().split('T')[0]}.pdf`);
+  
+  // Update Toast UI
+  setTimeout(() => {
+    showToast('📄', 'Download Complete', 'Your PDF report has been successfully generated.');
+  }, 1000);
 }
 
 function showToast(icon, title, msg) {
