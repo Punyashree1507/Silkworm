@@ -164,7 +164,7 @@
     </div>
     <div class="sidebar-footer">
       <div class="device-info">
-        <span data-i18n="lbl_device">Device</span>: <span class="online">nodeMCU_01</span><br>
+        <span data-i18n="lbl_device">Device</span>: <span class="online">ESP32_CAM_01</span><br>
         <span id="clock" style="color:var(--text2)"></span>
       </div>
     </div>
@@ -442,7 +442,7 @@ function downloadReportPDF() {
   // 2. Add Meta information
   doc.setFontSize(10);
   doc.setTextColor(100, 100, 100); // Gray text
-  doc.text("Device: nodeMCU_01", 14, 30);
+  doc.text("Device: ESP32_CAM_01", 14, 30);
   
   const now = new Date();
   const dateString = now.toLocaleDateString('en-GB');
